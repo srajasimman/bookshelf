@@ -24,95 +24,67 @@ with app.app_context():
 
 # Routes
 @app.route('/books', methods=['GET'])
-def get_books():
-    """
-    Retrieves all books from the database and constructs a list of dictionaries with book information.
-    No parameters are required. Returns a JSON response containing the list of books.
-    """
-    books = Book.query.all()
-    output = []
-    for book in books:
-        book_data = {'id': book.id, 'title': book.title, 'author': book.author, 'genre': book.genre}
-        output.append(book_data)
-    return jsonify({'books': output})
+def list_books():
+    """Retrieve all books."""
+    books = [
+        {
+            'id': book.id,
+            'title': book.title,
+            'author': book.author,
+            'genre': book.genre
+        }
+        for book in Book.query.all()
+    ]
+    return jsonify({'books': books})
 
 @app.route('/book/<int:book_id>', methods=['GET'])
-def get_book(book_id):
-    """
-    Retrieves a book from the database based on the provided book_id. Returns a JSON response containing the book's id, title, author, and genre.
-    """
+def get_book_by_id(book_id):
+    """Retrieves book by id."""
     book = Book.query.get_or_404(book_id)
     return jsonify({'id': book.id, 'title': book.title, 'author': book.author, 'genre': book.genre})
 
-@app.route('/book/rnd', methods=['GET'])
-def get_random_book():
-    """
-    Retrieves a random book from the database. Returns a JSON response containing the book's id, title, author, and genre.
-    """
+@app.route('/book/random', methods=['GET'])
+def random_book():
+    """Retrieves a random book from the database."""
     book = Book.query.order_by(db.func.random()).first()
     return jsonify({'id': book.id, 'title': book.title, 'author': book.author, 'genre': book.genre})
 
 @app.route('/book', methods=['POST'])
 def add_book():
-    """
-    A function to add a new book to the database.
-    Retrieves book information from the request JSON, creates a new Book object, adds it to the database session, and commits the changes.
-    Returns a JSON response with a message indicating the successful addition of the book.
-    """
-    data = request.json
-    new_book = Book(title=data['title'], author=data['author'], genre=data.get('genre'))
-    db.session.add(new_book)
+    """Adds a new book to the database."""
+    book_data = request.get_json()
+    book = Book(title=book_data['title'], author=book_data['author'], genre=book_data.get('genre'))
+    db.session.add(book)
     db.session.commit()
-    return jsonify({'message': 'Book added successfully!'})
+    return jsonify({'message': 'Book added successfully.'}), 201
 
 @app.route('/books', methods=['POST'])
 def add_books():
-    """
-    A function to add array of books to the database.
-    Retrieves book information from the request JSON, creates a list of new Book objects, adds them to the database session, and commits the changes.
-    Returns a JSON response with a message indicating the successful addition of the books.
-    """
-    data = request.json
-    new_books = [Book(title=book['title'], author=book['author'], genre=book.get('genre')) for book in data]
-    db.session.add_all(new_books)
+    books = [Book(title=book['title'], author=book['author'], genre=book.get('genre'))
+             for book in request.json]
+    db.session.add_all(books)
     db.session.commit()
-    return jsonify({'message': 'Books added successfully!'})
+    return jsonify({'message': 'Books added successfully!'}), 201
     
 
 @app.route('/book/<int:book_id>', methods=['PUT'])
 def update_book(book_id):
-    """
-    Updates a book in the database with the provided book_id.
-    
-    Parameters:
-        book_id (int): The unique identifier of the book to be updated.
-
-    Returns:
-        dict: A JSON response indicating the success of the update operation.
-    """
+    """Updates a book in the database"""
     book = Book.query.get_or_404(book_id)
     data = request.json
     book.title = data['title']
     book.author = data['author']
     book.genre = data.get('genre')
     db.session.commit()
-    return jsonify({'message': 'Book updated successfully!'})
+    return jsonify({'message': 'Book updated successfully'})
 
 @app.route('/book/<int:book_id>', methods=['DELETE'])
 def delete_book(book_id):
-    """
-    Deletes a book from the database using the provided book_id.
-    
-    Parameters:
-        book_id (int): The unique identifier of the book to be deleted.
-
-    Returns:
-        dict: A JSON response indicating the success of the deletion operation.
-    """
+    """Deletes a book by id."""
     book = Book.query.get_or_404(book_id)
     db.session.delete(book)
     db.session.commit()
-    return jsonify({'message': 'Book deleted successfully!'})
+    return jsonify({'message': 'Book deleted successfully'})
 
 if __name__ == '__main__':
     app.run(debug=True)
