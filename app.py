@@ -49,6 +49,12 @@ def random_book():
     book = Book.query.order_by(db.func.random()).first()
     return jsonify({'id': book.id, 'title': book.title, 'author': book.author, 'genre': book.genre})
 
+@app.route('/book/random/<int:count>', methods=['GET'])
+def random_books(count):
+    """Retrieves a random set of books from the database."""
+    books = Book.query.order_by(db.func.random()).limit(count).all()
+    return jsonify([{'id': book.id, 'title': book.title, 'author': book.author, 'genre': book.genre} for book in books])
+
 @app.route('/book', methods=['POST'])
 def add_book():
     """Adds a new book to the database."""
@@ -65,7 +71,6 @@ def add_books():
     db.session.add_all(books)
     db.session.commit()
     return jsonify({'message': 'Books added successfully!'}), 201
-    
 
 @app.route('/book/<int:book_id>', methods=['PUT'])
 def update_book(book_id):

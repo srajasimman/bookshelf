@@ -1,5 +1,10 @@
 # For more information, please refer to https://aka.ms/vscode-docker-python
 FROM python:3.12-slim
+LABEL org.opencontainers.image.source=https://github.com/srajasimman/bookshelf \
+      org.opencontainers.image.authors=srajasimman \
+      org.opencontainers.image.title=bookshelf \
+      org.opencontainers.image.description="Docker image for bookshelf" \
+      org.opencontainers.image.licenses=MIT
 
 EXPOSE 5000
 
